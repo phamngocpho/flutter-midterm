@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'features/user_management/presentation/bloc/user_bloc.dart';
 import 'features/user_management/presentation/pages/login_page.dart';
 import 'injection_container.dart' as di;
@@ -8,14 +9,14 @@ import 'core/utils/http_overrides_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Setup HttpOverrides (chỉ hoạt động trên mobile/desktop, không phải web)
   setupHttpOverrides();
 
   String? initError;
   try {
+    // Load environment variables
+    await dotenv.load(fileName: ".env");
     await di.init();
   } catch (e) {
-    // Don't print error messages, just store the error
     initError = e.toString();
   }
 

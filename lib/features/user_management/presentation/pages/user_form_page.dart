@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/user.dart';
 import '../bloc/user_bloc.dart';
-
+import '../../../../core/utils/cloudinary_uploader.dart';
 class UserFormPage extends StatefulWidget {
   final User? user;
 
@@ -66,13 +66,28 @@ class _UserFormPageState extends State<UserFormPage> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      String? finalImageUrl = _selectedImagePath;
+
+      // Upload to Cloudinary if local path
+      if (_selectedImagePath != null && !_selectedImagePath!.startsWith('http') && !kIsWeb) {
+        try {
+          finalImageUrl = await CloudinaryUploader.uploadImage(filePath: _selectedImagePath!);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Image upload failed: $e')),
+            );
+          }
+        }
+      }
+
       final user = User(
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        imageUrl: _selectedImagePath,
+        imageUrl: finalImageUrl,
       );
 
       if (widget.user != null) {
@@ -81,7 +96,7 @@ class _UserFormPageState extends State<UserFormPage> {
         context.read<UserBloc>().add(CreateUserEvent(user));
       }
 
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -168,7 +183,7 @@ class _UserFormPageState extends State<UserFormPage> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter an email';
                   }
-                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
                   if (!emailRegex.hasMatch(value.trim())) {
                     return 'Please enter a valid email';
                   }
@@ -210,7 +225,7 @@ class _UserFormPageState extends State<UserFormPage> {
 
               // Submit Button
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: () async { await _submitForm(); },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Theme.of(context).colorScheme.primary,

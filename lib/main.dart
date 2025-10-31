@@ -36,8 +36,61 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'User Management',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
+          colorScheme: ColorScheme.light(
+            primary: const Color(0xFF2C3E50),
+            secondary: const Color(0xFF34495E),
+            surface: Colors.white,
+            background: const Color(0xFFF5F7FA),
+            error: const Color(0xFFE74C3C),
+            onPrimary: Colors.white,
+            onSecondary: Colors.white,
+            onSurface: const Color(0xFF2C3E50),
+            onBackground: const Color(0xFF2C3E50),
+            onError: Colors.white,
+            inversePrimary: const Color(0xFF2C3E50),
+          ),
+          scaffoldBackgroundColor: const Color(0xFFF5F7FA),
+          cardTheme: CardThemeData(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
+            color: Colors.white,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF2C3E50),
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF2C3E50), width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2C3E50),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
         ),
         home: initError != null
             ? ErrorScreen(error: initError!)
@@ -58,7 +111,6 @@ class ErrorScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Initialization Error'),
-        backgroundColor: Colors.red,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -66,10 +118,10 @@ class ErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Icon(
+              Icon(
                 Icons.error_outline,
                 size: 80,
-                color: Colors.red,
+                color: Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 24),
               const Text(
@@ -84,16 +136,16 @@ class ErrorScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange[200]!),
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.orange[800], size: 20),
+                        Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 20),
                         const SizedBox(width: 8),
                         const Text(
                           'Troubleshooting Steps:',
@@ -149,16 +201,16 @@ class ErrorScreen extends StatelessWidget {
                 constraints: const BoxConstraints(maxHeight: 150),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red[200]!),
+                  color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Theme.of(context).colorScheme.error.withOpacity(0.3)),
                 ),
                 child: SingleChildScrollView(
                   child: Text(
                     error,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: Colors.red,
+                      color: Theme.of(context).colorScheme.error,
                     ),
                   ),
                 ),
@@ -171,7 +223,7 @@ class ErrorScreen extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Try Again (Restart App)'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,

@@ -13,7 +13,6 @@ class UserListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Management'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -38,11 +37,11 @@ class UserListPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  Icon(Icons.error_outline, size: 48, color: Theme.of(context).colorScheme.error),
                   const SizedBox(height: 16),
                   Text(
                     'Error: ${state.message}',
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -125,7 +124,7 @@ class UserListPage extends StatelessWidget {
               Navigator.pop(dialogContext);
 
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -152,7 +151,7 @@ class UserListPage extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.primary),
             child: const Text('Logout'),
           ),
         ],

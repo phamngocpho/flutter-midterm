@@ -107,7 +107,6 @@ class _UserFormPageState extends State<UserFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit User' : 'Add New User'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -124,9 +123,9 @@ class _UserFormPageState extends State<UserFormPage> {
                     width: 150,
                     height: 150,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Colors.grey.shade100,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey[400]!, width: 2),
+                      border: Border.all(color: Colors.grey.shade300, width: 1.5),
                     ),
                     child: _selectedImagePath != null
                         ? ClipOval(
@@ -135,11 +134,11 @@ class _UserFormPageState extends State<UserFormPage> {
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_a_photo, size: 40, color: Colors.grey[600]),
+                              Icon(Icons.add_a_photo, size: 40, color: Colors.grey.shade600),
                               const SizedBox(height: 8),
                               Text(
                                 'Add Photo',
-                                style: TextStyle(color: Colors.grey[600]),
+                                style: TextStyle(color: Colors.grey.shade600),
                               ),
                             ],
                           ),
@@ -228,7 +227,6 @@ class _UserFormPageState extends State<UserFormPage> {
                 onPressed: () async { await _submitForm(); },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
                 ),
                 child: Text(

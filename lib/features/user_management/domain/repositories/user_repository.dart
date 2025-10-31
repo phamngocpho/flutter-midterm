@@ -8,5 +8,6 @@ abstract class UserRepository {
   Future<Either<Failure, User>> createUser(User user);
   Future<Either<Failure, User>> updateUser(User user);
   Future<Either<Failure, void>> deleteUser(String username);
+  Future<Either<Failure, User>> verifyLogin(String username, String password);
 }
 

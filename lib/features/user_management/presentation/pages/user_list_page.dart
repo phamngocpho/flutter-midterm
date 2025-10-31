@@ -23,7 +23,7 @@ class UserListPage extends StatelessWidget {
       ),
       body: BlocBuilder<UserBloc, UserState>(
         builder: (context, state) {
-          if (state is UserInitial) {
+          if (state is UserInitial || state is LoginSuccess) {
             context.read<UserBloc>().add(LoadUsersEvent());
             return const Center(child: CircularProgressIndicator());
           }

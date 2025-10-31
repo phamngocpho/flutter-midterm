@@ -36,3 +36,16 @@ class DeleteUserEvent extends UserEvent {
   List<Object> get props => [username];
 }
 
+class VerifyLoginEvent extends UserEvent {
+  final String username;
+  final String password;
+
+  const VerifyLoginEvent({
+    required this.username,
+    required this.password,
+  });
+
+  @override
+  List<Object> get props => [username, password];
+}
+

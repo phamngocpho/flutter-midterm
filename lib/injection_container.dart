@@ -9,6 +9,7 @@ import 'features/user_management/domain/usecases/create_user.dart';
 import 'features/user_management/domain/usecases/delete_user.dart';
 import 'features/user_management/domain/usecases/get_all_users.dart';
 import 'features/user_management/domain/usecases/update_user.dart';
+import 'features/user_management/domain/usecases/verify_login.dart';
 import 'features/user_management/presentation/bloc/user_bloc.dart';
 
 final sl = GetIt.instance;
@@ -20,6 +21,7 @@ Future<void> init() async {
       getAllUsers: sl(),
       createUser: sl(),
       updateUser: sl(),
+      verifyLogin: sl(),
       deleteUser: sl(),
     ),
   );
@@ -28,6 +30,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllUsers(sl()));
   sl.registerLazySingleton(() => CreateUser(sl()));
   sl.registerLazySingleton(() => UpdateUser(sl()));
+  sl.registerLazySingleton(() => VerifyLogin(sl()));
   sl.registerLazySingleton(() => DeleteUser(sl()));
 
   // Repository

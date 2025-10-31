@@ -31,105 +31,63 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = true;
       });
 
-      final email = _emailController.text.trim();
+      final username = _emailController.text.trim();
       final password = _passwordController.text;
 
-      try {
-        // Load all users to check credentials
-        context.read<UserBloc>().add(LoadUsersEvent());
-
-        // Wait for users to load
-        await Future.delayed(const Duration(milliseconds: 800));
-
-        if (!mounted) return;
-
-        final state = context.read<UserBloc>().state;
-
-        if (state is UsersLoaded) {
-          // Try to find user with matching credentials
-          try {
-            final user = state.users.firstWhere(
-                  (u) => u.email == email && u.password == password,
-            );
-
-            // Found user - login success
-            setState(() {
-              _isLoading = false;
-            });
-
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Welcome back, ${user.username}!'),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-
-              // Navigate to user list page
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const UserListPage()),
-              );
-            }
-          } catch (e) {
-            // User not found - login failed
-            setState(() {
-              _isLoading = false;
-            });
-
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Invalid email or password'),
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  duration: const Duration(seconds: 3),
-                ),
-              );
-            }
-          }
-        } else {
-          // Error loading users
-          setState(() {
-            _isLoading = false;
-          });
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Failed to connect to server'),
-                backgroundColor: Theme.of(context).colorScheme.error,
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      }
+      // Trigger login verification
+      context.read<UserBloc>().add(
+        VerifyLoginEvent(username: username, password: password),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Card(
+    return BlocListener<UserBloc, UserState>(
+      listener: (context, state) {
+        if (state is LoginSuccess) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome back, ${state.user.username}!'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+
+          // Load users list before navigating
+          context.read<UserBloc>().add(LoadUsersEvent());
+
+          // Navigate to user list page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const UserListPage()),
+          );
+        } else if (state is UserError) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message.contains('Login failed')
+                  ? 'Invalid username or password'
+                  : state.message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Form(
@@ -173,21 +131,17 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Email Field
+                      // Email/Username Field
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: Icon(Icons.email),
+                          labelText: 'Email or Username',
+                          prefixIcon: Icon(Icons.person),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                          if (!emailRegex.hasMatch(value.trim())) {
-                            return 'Please enter a valid email';
+                            return 'Please enter your email or username';
                           }
                           return null;
                         },
@@ -274,6 +228,9 @@ class _LoginPageState extends State<LoginPage> {
                       // Skip Login Button (for testing)
                       TextButton(
                         onPressed: () {
+                          // Load users list before navigating
+                          context.read<UserBloc>().add(LoadUsersEvent());
+
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -296,6 +253,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
+    ),
     );
   }
 }

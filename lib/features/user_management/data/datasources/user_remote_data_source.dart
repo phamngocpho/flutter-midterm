@@ -1,4 +1,5 @@
 import 'package:mongo_dart/mongo_dart.dart';
+import '../../../../core/utils/password_hasher.dart';
 
 abstract class UserRemoteDataSource {
   Future<List<Map<String, dynamic>>> getAllUsers();
@@ -6,6 +7,7 @@ abstract class UserRemoteDataSource {
   Future<Map<String, dynamic>> createUser(Map<String, dynamic> user);
   Future<Map<String, dynamic>> updateUser(String username, Map<String, dynamic> user);
   Future<void> deleteUser(String username);
+  Future<Map<String, dynamic>> verifyLogin(String username, String password);
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -61,10 +63,16 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         throw Exception('Username already exists');
       }
 
-      final result = await _collection.insertOne(user);
+      // Hash the password before storing
+      final userWithHashedPassword = Map<String, dynamic>.from(user);
+      if (userWithHashedPassword.containsKey('password')) {
+        userWithHashedPassword['password'] = PasswordHasher.hashPassword(user['password']);
+      }
+
+      final result = await _collection.insertOne(userWithHashedPassword);
       if (result.isSuccess) {
-        user.remove('_id');
-        return user;
+        userWithHashedPassword.remove('_id');
+        return userWithHashedPassword;
       } else {
         throw Exception('Failed to create user');
       }
@@ -76,14 +84,20 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<Map<String, dynamic>> updateUser(String username, Map<String, dynamic> user) async {
     try {
+      // Hash the password if it's being updated
+      final userWithHashedPassword = Map<String, dynamic>.from(user);
+      if (userWithHashedPassword.containsKey('password') && userWithHashedPassword['password'].isNotEmpty) {
+        userWithHashedPassword['password'] = PasswordHasher.hashPassword(user['password']);
+      }
+
       final result = await _collection.replaceOne(
         where.eq('username', username),
-        user,
+        userWithHashedPassword,
       );
 
       if (result.isSuccess && result.nModified > 0) {
-        user.remove('_id');
-        return user;
+        userWithHashedPassword.remove('_id');
+        return userWithHashedPassword;
       } else {
         throw Exception('User not found or no changes made');
       }
@@ -102,6 +116,50 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       }
     } catch (e) {
       throw Exception('Failed to delete user: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifyLogin(String username, String password) async {
+    try {
+      // Try to find user by email first, then by username (for backward compatibility)
+      var user = await _collection.findOne(where.eq('email', username));
+
+      user ??= await _collection.findOne(where.eq('username', username));
+
+      if (user == null) {
+        throw Exception('Invalid email/username or password');
+      }
+
+      final storedPassword = user['password'] as String;
+
+      // Check if password matches (support both hashed and plain text for backward compatibility)
+      final isPasswordValid = storedPassword == password || // Plain text (old data)
+                              PasswordHasher.verifyPassword(password, storedPassword); // Hashed (new data)
+
+      if (!isPasswordValid) {
+        throw Exception('Invalid email/username or password');
+      }
+
+      // If password was plain text, update it to hashed version
+      if (storedPassword == password) {
+        try {
+          final hashedPassword = PasswordHasher.hashPassword(password);
+          await _collection.updateOne(
+            where.eq('username', user['username']),
+            modify.set('password', hashedPassword),
+          );
+          user['password'] = hashedPassword;
+        } catch (e) {
+          // Log error but don't fail login
+          print('Warning: Failed to update password hash: $e');
+        }
+      }
+
+      user.remove('_id');
+      return user;
+    } catch (e) {
+      throw Exception('Login failed: $e');
     }
   }
 }

@@ -64,5 +64,15 @@ class UserRepositoryImpl implements UserRepository {
       return Left(DatabaseFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, User>> verifyLogin(String username, String password) async {
+    try {
+      final user = await remoteDataSource.verifyLogin(username, password);
+      return Right(UserModel.fromJson(user));
+    } catch (e) {
+      return Left(DatabaseFailure(e.toString()));
+    }
+  }
 }
 

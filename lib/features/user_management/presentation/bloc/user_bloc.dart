@@ -5,6 +5,7 @@ import '../../domain/usecases/create_user.dart';
 import '../../domain/usecases/delete_user.dart';
 import '../../domain/usecases/get_all_users.dart';
 import '../../domain/usecases/update_user.dart';
+import '../../domain/usecases/verify_login.dart';
 import '../../../../core/usecases/usecase.dart';
 
 part 'user_event.dart';
@@ -15,17 +16,20 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final CreateUser createUser;
   final UpdateUser updateUser;
   final DeleteUser deleteUser;
+  final VerifyLogin verifyLogin;
 
   UserBloc({
     required this.getAllUsers,
     required this.createUser,
     required this.updateUser,
     required this.deleteUser,
+    required this.verifyLogin,
   }) : super(UserInitial()) {
     on<LoadUsersEvent>(_onLoadUsers);
     on<CreateUserEvent>(_onCreateUser);
     on<UpdateUserEvent>(_onUpdateUser);
     on<DeleteUserEvent>(_onDeleteUser);
+    on<VerifyLoginEvent>(_onVerifyLogin);
   }
 
   Future<void> _onLoadUsers(
@@ -86,6 +90,21 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         // Reload users after deletion
         add(LoadUsersEvent());
       },
+    );
+  }
+
+  Future<void> _onVerifyLogin(
+    VerifyLoginEvent event,
+    Emitter<UserState> emit,
+  ) async {
+    emit(UserLoading());
+    final result = await verifyLogin(
+      LoginParams(username: event.username, password: event.password),
+    );
+
+    result.fold(
+      (failure) => emit(UserError(failure.message)),
+      (user) => emit(LoginSuccess(user)),
     );
   }
 }

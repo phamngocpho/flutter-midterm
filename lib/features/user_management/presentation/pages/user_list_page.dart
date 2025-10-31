@@ -134,11 +134,18 @@ class UserListPage extends StatelessWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context, String username) {
+    final authService = AuthService();
+    final isDeletingSelf = authService.currentUser?.username == username;
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete User'),
-        content: Text('Are you sure you want to delete user "$username"?'),
+        title: const Text('Delete Account'),
+        content: Text(
+          isDeletingSelf
+              ? 'Are you sure you want to delete your account? This action cannot be undone and you will be logged out.'
+              : 'Are you sure you want to delete user "$username"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -148,6 +155,15 @@ class UserListPage extends StatelessWidget {
             onPressed: () {
               context.read<UserBloc>().add(DeleteUserEvent(username));
               Navigator.pop(dialogContext);
+
+              // If user is deleting their own account, logout and redirect to login
+              if (isDeletingSelf) {
+                authService.logout();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),

@@ -84,10 +84,18 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<Map<String, dynamic>> updateUser(String username, Map<String, dynamic> user) async {
     try {
-      // Hash the password if it's being updated
       final userWithHashedPassword = Map<String, dynamic>.from(user);
-      if (userWithHashedPassword.containsKey('password') && userWithHashedPassword['password'].isNotEmpty) {
-        userWithHashedPassword['password'] = PasswordHasher.hashPassword(user['password']);
+
+      // Only hash password if it's a new password (not already hashed)
+      // SHA-256 hash is always 64 characters long
+      if (userWithHashedPassword.containsKey('password') &&
+          userWithHashedPassword['password'].isNotEmpty) {
+        final password = userWithHashedPassword['password'];
+        // If password is not 64 chars, it's plain text and needs to be hashed
+        if (password.length != 64) {
+          userWithHashedPassword['password'] = PasswordHasher.hashPassword(password);
+        }
+        // If it's 64 chars, assume it's already hashed (keep it as is)
       }
 
       final result = await _collection.replaceOne(

@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/user.dart';
 import '../bloc/user_bloc.dart';
 import '../../../../core/utils/cloudinary_uploader.dart';
+import '../../../../core/services/auth_service.dart';
+import 'login_page.dart';
 class UserFormPage extends StatefulWidget {
   final User? user;
 
@@ -31,7 +33,7 @@ class _UserFormPageState extends State<UserFormPage> {
     if (widget.user != null) {
       _usernameController.text = widget.user!.username;
       _emailController.text = widget.user!.email;
-      _passwordController.text = widget.user!.password;
+      // Don't set password - it's hashed in DB and we don't want to show it
       _selectedImagePath = widget.user!.imageUrl;
     }
   }
@@ -83,10 +85,15 @@ class _UserFormPageState extends State<UserFormPage> {
         }
       }
 
+      // If editing and password is empty, keep the old password
+      final password = widget.user != null && _passwordController.text.isEmpty
+          ? widget.user!.password
+          : _passwordController.text;
+
       final user = User(
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
-        password: _passwordController.text,
+        password: password,
         imageUrl: finalImageUrl,
       );
 
@@ -199,6 +206,7 @@ class _UserFormPageState extends State<UserFormPage> {
                   labelText: 'Password',
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.lock),
+                  helperText: isEditing ? 'Leave blank to keep current password' : null,
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -211,10 +219,12 @@ class _UserFormPageState extends State<UserFormPage> {
                   ),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  // When editing, password can be empty (keep old password)
+                  if (!isEditing && (value == null || value.isEmpty)) {
                     return 'Please enter a password';
                   }
-                  if (value.length < 6) {
+                  // If password is provided, validate length
+                  if (value != null && value.isNotEmpty && value.length < 6) {
                     return 'Password must be at least 6 characters';
                   }
                   return null;
@@ -234,9 +244,66 @@ class _UserFormPageState extends State<UserFormPage> {
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
+
+              // Delete Account Button (only for users editing their own account)
+              if (isEditing && AuthService().canDelete(widget.user!.username)) ...[
+                const SizedBox(height: 16),
+                OutlinedButton(
+                  onPressed: () => _showDeleteAccountConfirmation(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  child: const Text(
+                    'Delete Account',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'Are you sure you want to delete your account?\n\n'
+          'This action cannot be undone and you will be logged out immediately.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final username = widget.user!.username;
+              context.read<UserBloc>().add(DeleteUserEvent(username));
+
+              // Logout and redirect to login
+              AuthService().logout();
+
+              // Close dialog
+              Navigator.pop(dialogContext);
+              // Close form page
+              Navigator.pop(context);
+              // Navigate to login page
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

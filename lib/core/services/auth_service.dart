@@ -39,8 +39,11 @@ class AuthService {
 
   /// Check if user can delete a specific user account
   bool canDelete(String username) {
-    if (!isAdmin) return false; // Only admin can delete
-    return username != _currentUser?.username; // Admin cannot delete themselves
+    if (isAdmin) {
+      return username != 'admin'; // Admin cannot delete admin account
+    }
+    // User can delete their own account
+    return _currentUser?.username == username;
   }
 
   /// Logout current user

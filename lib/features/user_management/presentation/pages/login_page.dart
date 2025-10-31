@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/user_bloc.dart';
 import 'user_list_page.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -262,6 +263,29 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                         ),
                         const SizedBox(height: 16),
+
+                        // Sign Up Link
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Don\'t have an account? ',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SignUpPage(),
+                                  ),
+                                );
+                              },
+                              child: const Text('Sign Up'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
 
                         // Skip Login Button (for testing)
                         TextButton(

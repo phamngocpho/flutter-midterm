@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:get_it/get_it.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'core/constants/app_constants.dart';
+import 'core/database/seed_admin.dart';
 import 'features/user_management/data/datasources/user_remote_data_source.dart';
 import 'features/user_management/data/repositories/user_repository_impl.dart';
 import 'features/user_management/domain/repositories/user_repository.dart';
@@ -86,6 +87,9 @@ Future<Db> _initDatabase() async {
     print('Connected to MongoDB successfully');
     print('   Database: ${db.databaseName}');
     print('   State: ${db.state}');
+    // Seed admin account if not exists
+    await seedAdminAccount(db);
+
 
     return db;
   } catch (e) {

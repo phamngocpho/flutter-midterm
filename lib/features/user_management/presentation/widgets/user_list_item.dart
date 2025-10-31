@@ -5,14 +5,14 @@ import '../../domain/entities/user.dart';
 
 class UserListItem extends StatelessWidget {
   final User user;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const UserListItem({
     super.key,
     required this.user,
-    required this.onEdit,
-    required this.onDelete,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -45,16 +45,30 @@ class UserListItem extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.blue),
-              onPressed: onEdit,
-              tooltip: 'Edit',
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: onDelete,
-              tooltip: 'Delete',
-            ),
+            if (onEdit != null)
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                onPressed: onEdit,
+                tooltip: 'Edit',
+              )
+            else
+              IconButton(
+                icon: Icon(Icons.edit, color: Colors.grey[400]),
+                onPressed: null,
+                tooltip: 'No permission',
+              ),
+            if (onDelete != null)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: onDelete,
+                tooltip: 'Delete',
+              )
+            else
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.grey[400]),
+                onPressed: null,
+                tooltip: 'No permission',
+              ),
           ],
         ),
         isThreeLine: true,

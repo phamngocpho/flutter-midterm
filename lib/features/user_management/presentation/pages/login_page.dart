@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/user_bloc.dart';
 import 'user_list_page.dart';
 import 'signup_page.dart';
+import '../../../../core/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -49,6 +50,9 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             _isLoading = false;
           });
+          // Set current logged in user
+          AuthService().setCurrentUser(state.user);
+
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -228,6 +232,9 @@ class _LoginPageState extends State<LoginPage> {
                       // Skip Login Button (for testing)
                       TextButton(
                         onPressed: () {
+                          // Set admin mode
+                          AuthService().setAdminMode();
+
                           // Load users list before navigating
                           context.read<UserBloc>().add(LoadUsersEvent());
 
